@@ -1,0 +1,79 @@
+-- 주민번호를 200729-1****** 형식으로 표현하기.
+
+-- 1. Oracle
+-- REGEXP_REPLACE 를 사용해서 표현
+SELECT REGEXP_REPLACE('2007291111111', '(\d{6})(\d{1})(\d{6})', '\1-\2****** ')
+AS 주민번호
+FROM DUAL;
+
+-- 2. PL/SQL
+/*
+    > 기본 구조
+    DECLARE
+        선언부
+    BEGIN
+        실행부
+    EXCEPTION
+        예외처리부
+    END;
+    
+    > 코드 실행 전 실행
+    SET SERVEROUTPUT ON; -- 출력 결과
+    SET AUTOPRINT ON; -- 변수 자동 출력
+    SET TIMING ON; -- 총 소요시간
+*/
+
+SET SERVEROUTPUT ON;
+SET AUTOPRINT ON;
+SET TIMING ON;
+  
+-- 2-1. 첫번째 PL/SQL
+DECLARE
+    v_number VARCHAR(20) := &v_number;
+BEGIN
+    v_number := SUBSTR(v_number, 1, 6) || '-' || SUBSTR(v_number, 7);
+    -- 2007291234567 입력시 200729-1234567
+    v_number := REPLACE(v_number, SUBSTR(v_number, 9), '******');
+    -- 200729-1234567 의 9번째 자리부터 * 표시
+    DBMS_OUTPUT.PUT_LINE(v_number);
+END;
+/*
+    결과 :
+    2007291234567 을 입력했을 때에는 200729-1****** 의 결과값 확인.
+    하지만,
+    2007291111111 을 입력했을 때에는 200729-******1 의 결과값 확인.
+    
+    아무래도 연속된 숫자값을 하나로 인식을 해서 결과값이 달라진 것으로 생각.
+*/
+
+-- 2-2. 두번째 PL/SQL
+DECLARE
+    v_number VARCHAR(20) := &v_number;
+BEGIN
+    v_number := SUBSTR(v_number, 1, 6) || '-' || SUBSTR(v_number, 7);
+    v_number := SUBSTR(v_number,1, 6)|| '-' || SUBSTR(v_number, 8, 1) || '******';
+    -- 200729-1234567 1 ~ 6번째 표시, - 표시, 8번째 표시, ****** 표시
+    DBMS_OUTPUT.PUT_LINE(v_number);
+END;
+
+/*
+    결과 :
+    REPLACE 를 SUBSTR 로 바꾸면서 뒷자리를 1111111 로 입력해도
+    200729-1****** 의 결과값 확인 가능.
+*/
+
+-- 2-3. 세번째 PL/SQL
+DECLARE
+    v_number VARCHAR(20) := &v_number;
+BEGIN
+    v_number := SUBSTR(v_number, 1, 6) || '-' || SUBSTR(v_number, 7, 1) || '******';
+    -- 2007291234567 를 입력 받은 후 1 ~ 6번째 표시, - 표시, 7번째 표시, ****** 표시
+    DBMS_OUTPUT.PUT_LINE(v_number);
+END;
+
+/*
+    결과 :
+    2번째와 결과값은 동일.
+    하지만 부수적인 코드를 뺀 코드 작성.
+    입력값에서 바로 결과값 확인.
+*/
